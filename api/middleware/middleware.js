@@ -1,4 +1,4 @@
-const Users = require('../users/users-model');
+const User = require('../users/users-model');
 
 
 
@@ -15,35 +15,37 @@ function logger(req, res, next) {
 async function validateUserId(req, res, next) {
   // DO YOUR MAGIC
   try {
-    const user = await Users.findById(req.params.id);
-  if (user) {
+    const user = await User.getById(req.params.id);
+  if (!user) {
+    res.status(404).json({ message: 'no such user'})
+  } else {
     req.user = user;
     next();
-  } else {
-    next({ status: 404, message: "user not found"});
   }
   } catch (err) {
-    next(err);
+    res.status(500).json({ message: 'problem finding user'});
   }
 }
 
 function validateUser(req, res, next) {
   // DO YOUR MAGIC
   const { name } = req.body;
-  if (name !== undefined && typeof name === 'string' && name.trim().length) {
-    next();
+  if (!name || !name.trim()) {
+    res.status(400).json({ message: 'missing required name field' });
   } else {
-    next({ status: 400, message: "missing require name field"});
+    req.name = name.trim()
+    next();
   }
 }
 
 function validatePost(req, res, next) {
   // DO YOUR MAGIC
   const { text } = req.body;
-  if (text !== undefined && typeof text === 'string' && text.trim().length) {
-    next();
+  if (!text || !text.trim()) {
+    res.status(400).json({ message: "missing required text field"})
   } else {
-    next({ status: 400, message: "missing required text field"});
+    req.text = text.trim()
+    next()
   }
 }
 
